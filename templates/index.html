@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Grading Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom animations and styles */
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* File upload styling */
+        .file-upload-area {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #4f46e5;
+            background-color: #f0f9ff;
+        }
+        
+        /* Progress bar */
+        .progress-bar {
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                        <span class="text-purple-600 font-bold">AI</span>
+                    </div>
+                    <h1 class="text-xl font-bold">AI Grading Platform</h1>
+                </div>
+                <div id="navItems" class="hidden items-center space-x-4">
+                    <span id="userInfo" class="text-sm"></span>
+                    <button id="logoutBtn" class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Login Form -->
+        <div id="loginSection" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Welcome Back</h2>
+                <p class="text-gray-600 mt-2">Sign in to your account</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="loginEmail" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="loginPassword" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                
+                <button type="submit" 
+                        class="w-full gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                    Sign In
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">Don't have an account? 
+                    <button id="showRegisterBtn" class="text-purple-600 hover:text-purple-800 font-semibold">Register here</button>
+                </p>
+            </div>
+            
+            <!-- Demo Credentials -->
+            <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2">Demo Credentials:</h4>
+                <div class="text-xs text-gray-600 space-y-1">
+                    <p><strong>Student:</strong> alice@school.edu / Student123!</p>
+                    <p><strong>Teacher:</strong> wilson@school.edu / Teacher123!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="registerSection" class="hidden max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800">Create Account</h2>
+                <p class="text-gray-600 mt-2">Join the AI Grading Platform</p>
+            </div>
+            
+            <form id="registerForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="registerName" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="registerEmail" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                    <input type="password" id="registerPassword" required 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    <p class="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                    <select id="registerRole" required 
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                        <option value="">Select Role</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Teacher</option>
+                    </select>
+                </div>
+                
+                <button type="submit" 
+                        class="w-full gradient-bg text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                    Create Account
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">Already have an account? 
+                    <button id="showLoginBtn" class="text-purple-600 hover:text-purple-800 font-semibold">Sign in here</button>
+                </p>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboardSection" class="hidden">
+            <!-- Student Dashboard -->
+            <div id="studentDashboard" class="hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Student Dashboard</h2>
+                    <p class="text-gray-600">View assignments and submit your homework</p>
+                </div>
+
+                <!-- Assignments Tab -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Available Assignments</h3>
+                    <div id="studentAssignments" class="space-y-4">
+                        <!-- Assignment cards will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Upload Section -->
+                <div id="uploadSection" class="hidden bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Submit Assignment</h3>
+                    <div id="assignmentInfo" class="mb-4 p-4 bg-blue-50 rounded-lg">
+                        <!-- Assignment info will be displayed here -->
+                    </div>
+                    
+                    <div class="file-upload-area rounded-lg p-8 text-center" id="fileUploadArea">
+                        <div class="mb-4">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </div>
+                        <p class="text-gray-600 mb-2">Drop your PDF file here or click to browse</p>
+                        <p class="text-sm text-gray-500">Supports PDF, JPG, PNG files up to 10MB</p>
+                        <input type="file" id="fileInput" class="hidden" accept=".pdf,.jpg,.jpeg,.png,.gif,.txt">
+                        <button id="browseBtn" class="mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            Browse Files
+                        </button>
+                    </div>
+                    
+                    <div id="filePreview" class="hidden mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0h8v12H6V4z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p id="fileName" class="font-medium text-gray-800"></p>
+                                    <p id="fileSize" class="text-sm text-gray-500"></p>
+                                </div>
+                            </div>
+                            <button id="removeFileBtn" class="text-red-600 hover:text-red-800">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex space-x-4">
+                        <button id="submitBtn" class="disabled:opacity-50 disabled:cursor-not-allowed bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors" disabled>
+                            Submit Assignment
+                        </button>
+                        <button id="cancelUploadBtn" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+
+                <!-- My Submissions -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-4">My Submissions</h3>
+                    <div id="studentSubmissions" class="space-y-4">
+                        <!-- Submissions will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Teacher Dashboard -->
+            <div id="teacherDashboard" class="hidden">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Teacher Dashboard</h2>
+                    <p class="text-gray-600">Manage assignments and grade submissions</p>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="mb-6">
+                    <nav class="flex space-x-8">
+                        <button id="assignmentsTab" class="tab-btn border-b-2 border-purple-500 text-purple-600 py-2 px-1 font-medium">
+                            Assignments
+                        </button>
+                        <button id="submissionsTab" class="tab-btn border-b-2 border-transparent text-gray-500 py-2 px-1 font-medium hover:text-gray-700">
+                            Submissions
+                        </button>
+                        <button id="createAssignmentTab" class="tab-btn border-b-2 border-transparent text-gray-500 py-2 px-1 font-medium hover:text-gray-700">
+                            Create Assignment
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Assignments Content -->
+                <div id="teacherAssignmentsContent" class="tab-content bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-semibold text-gray-800">My Assignments</h3>
+                        <button id="newAssignmentBtn" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                            + New Assignment
+                        </button>
+                    </div>
+                    <div id="teacherAssignments" class="space-y-4">
+                        <!-- Assignments will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Submissions Content -->
+                <div id="teacherSubmissionsContent" class="hidden tab-content bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Student Submissions</h3>
+                    <div id="teacherSubmissions" class="space-y-4">
+                        <!-- Submissions will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Create Assignment Content -->
+                <div id="createAssignmentContent" class="hidden tab-content bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold text-gray-800 mb-6">Create New Assignment</h3>
+                    <form id="createAssignmentForm" class="space-y-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Title</label>
+                                <input type="text" id="assignmentTitle" required 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                                <input type="text" id="assignmentSubject" required 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                            <textarea id="assignmentDescription" required rows="4"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Max Points</label>
+                                <input type="number" id="assignmentMaxPoints" required min="1" max="1000" value="100"
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                                <input type="datetime-local" id="assignmentDueDate" required 
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-4">
+                            <button type="submit" 
+                                    class="bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                                Create Assignment
+                            </button>
+                            <button type="button" id="cancelAssignmentBtn"
+                                    class="bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-semibold hover:bg-gray-400 transition-colors">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-8 text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Grading Modal -->
+    <div id="gradingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-xl max-w-2xl w-full mx-4 max-h-screen overflow-y-auto">
+            <div class="p-6 border-b">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-semibold text-gray-800">Grade Submission</h3>
+                    <button id="closeGradingModal" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6">
+                <div id="submissionDetails" class="mb-6">
+                    <!-- Submission details will be populated here -->
+                </div>
+                
+                <div class="mb-6">
+                    <button id="analyzeBtn" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        🤖 AI Analysis
+                    </button>
+                </div>
+                
+                <div id="aiAnalysis" class="hidden mb-6 p-4 bg-blue-50 rounded-lg">
+                    <!-- AI analysis will be displayed here -->
+                </div>
+                
+                <form id="gradingForm" class="space-y-4">
+                    <input type="hidden" id="gradingSubmissionId">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Grade (0-100)</label>
+                        <input type="number" id="gradeInput" min="0" max="100" required
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Feedback</label>
+                        <textarea id="feedbackInput" rows="4" 
+                                  class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="Provide feedback to the student..."></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            Save Grade
+                        </button>
+                        <button type="button" id="cancelGradingBtn" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition-colors">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div id="messageContainer" class="fixed top-4 right-4 z-50">
+        <!-- Messages will be dynamically added here -->
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let authToken = null;
+        let currentAssignmentId = null;
+        let selectedFile = null;
+
+        // API base URL
+        const API_BASE = '/api';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+        });
+
+        function initializeApp() {
+            // Check for existing token
+            const token = localStorage.getItem('authToken');
+            if (token) {
+                authToken = token;
+                verifyToken();
+            } else {
+                showLoginSection();
+            }
+        }
+
+        function setupEventListeners() {
+            // Auth forms
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('registerForm').addEventListener('submit', handleRegister);
+            document.getElementById('logoutBtn').addEventListener('click', handleLogout);
+            
+            // Form toggles
+            document.getElementById('showRegisterBtn').addEventListener('click', showRegisterSection);
+            document.getElementById('showLoginBtn').addEventListener('click', showLoginSection);
+            
+            // File upload
+            document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+            document.getElementById('browseBtn').addEventListener('click', () => document.getElementById('fileInput').click());
+            document.getElementById('removeFileBtn').addEventListener('click', removeFile);
+            document.getElementById('submitBtn').addEventListener('click', handleSubmitAssignment);
+            document.getElementById('cancelUploadBtn').addEventListener('click', cancelUpload);
+            
+            // Teacher tabs
+            document.getElementById('assignmentsTab').addEventListener('click', () => switchTab('assignments'));
+            document.getElementById('submissionsTab').addEventListener('click', () => switchTab('submissions'));
+            document.getElementById('createAssignmentTab').addEventListener('click', () => switchTab('createAssignment'));
+            
+            // Assignment creation
+            document.getElementById('createAssignmentForm').addEventListener('submit', handleCreateAssignment);
+            document.getElementById('newAssignmentBtn').addEventListener('click', () => switchTab('createAssignment'));
+            document.getElementById('cancelAssignmentBtn').addEventListener('click', () => switchTab('assignments'));
+            
+            // Grading modal
+            document.getElementById('closeGradingModal').addEventListener('click', closeGradingModal);
+            document.getElementById('cancelGradingBtn').addEventListener('click', closeGradingModal);
+            document.getElementById('gradingForm').addEventListener('submit', handleGradeSubmission);
+            document.getElementById('analyzeBtn').addEventListener('click', handleAIAnalysis);
+            
+            // File drag and drop
+            setupFileDragDrop();
+        }
+
+        function setupFileDragDrop() {
+            const uploadArea = document.getElementById('fileUploadArea');
+            
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleFileSelect({ target: { files: files } });
+                }
+            });
+        }
+
+        // Authentication functions
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('authToken', authToken);
+                    
+                    showMessage('Login successful!', 'success');
+                    showDashboard();
+                } else {
+                    showMessage(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const role = document.getElementById('registerRole').value;
+            
+            try {
+                showLoading(true);
+                const response = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password, role })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('authToken', authToken);
+                    
+                    showMessage('Registration successful!', 'success');
+                    showDashboard();
+                } else {
+                    showMessage(data.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function verifyToken() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    currentUser = data.user;
+                    showDashboard();
+                } else {
+                    localStorage.removeItem('authToken');
+                    showLoginSection();
+                }
+            } catch (error) {
+                localStorage.removeItem('authToken');
+                showLoginSection();
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('authToken');
+            authToken = null;
+            currentUser = null;
+            showLoginSection();
+            showMessage('Logged out successfully', 'success');
+        }
+
+        // UI functions
+        function showLoginSection() {
+            document.getElementById('loginSection').classList.remove('hidden');
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('navItems').classList.add('hidden');
+        }
+
+        function showRegisterSection() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.remove('hidden');
+            document.getElementById('dashboardSection').classList.add('hidden');
+            document.getElementById('navItems').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('registerSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('navItems').classList.remove('flex', 'hidden');
+            document.getElementById('navItems').classList.add('flex');
+            
+            document.getElementById('userInfo').textContent = `${currentUser.name} (${currentUser.role})`;
+            
+            if (currentUser.role === 'student') {
+                document.getElementById('studentDashboard').classList.remove('hidden');
+                document.getElementById('teacherDashboard').classList.add('hidden');
+                loadStudentData();
+            } else {
+                document.getElementById('studentDashboard').classList.add('hidden');
+                document.getElementById('teacherDashboard').classList.remove('hidden');
+                loadTeacherData();
+            }
+        }
+
+        function showLoading(show) {
+            const modal = document.getElementById('loadingModal');
+            if (show) {
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function showMessage(message, type = 'info') {
+            const container = document.getElementById('messageContainer');
+            const messageEl = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            messageEl.className = `${bgColor} text-white px-4 py-2 rounded-lg mb-2 fade-in`;
+            messageEl.textContent = message;
+            
+            container.appendChild(messageEl);
+            
+            setTimeout(() => {
+                messageEl.remove();
+            }, 5000);
+        }
+
+        // Student functions
+        async function loadStudentData() {
+            await loadAssignments();
+            await loadSubmissions();
+        }
+
+        async function loadAssignments() {
+            try {
+                const response = await fetch(`${API_BASE}/assignments`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayStudentAssignments(data.assignments);
+                }
+            } catch (error) {
+                showMessage('Failed to load assignments', 'error');
+            }
+        }
+
+        function displayStudentAssignments(assignments) {
+            const container = document.getElementById('studentAssignments');
+            container.innerHTML = '';
+            
+            if (assignments.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No assignments available</p>';
+                return;
+            }
+            
+            assignments.forEach(assignment => {
+                const card = document.createElement('div');
+                card.className = 'border border-gray-200 rounded-lg p-4 card-hover cursor-pointer';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${assignment.description}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                <span>Subject: ${assignment.subject}</span>
+                                <span>Max Points: ${assignment.max_points}</span>
+                                <span>Due: ${new Date(assignment.due_date).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <button class="submit-assignment-btn bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+                                data-assignment-id="${assignment.id}">
+                            Submit
+                        </button>
+                    </div>
+                `;
+                
+                card.querySelector('.submit-assignment-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showUploadSection(assignment);
+                });
+                
+                container.appendChild(card);
+            });
+        }
+
+        function showUploadSection(assignment) {
+            currentAssignmentId = assignment.id;
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('assignmentInfo').innerHTML = `
+                <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                <p class="text-sm text-gray-600">${assignment.description}</p>
+                <p class="text-xs text-gray-500 mt-1">Due: ${new Date(assignment.due_date).toLocaleDateString()}</p>
+            `;
+            
+            // Scroll to upload section
+            document.getElementById('uploadSection').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/gif', 'text/plain'];
+            if (!allowedTypes.includes(file.type)) {
+                showMessage('Invalid file type. Please select PDF, JPG, PNG, GIF, or TXT files.', 'error');
+                return;
+            }
+            
+            // Validate file size (10MB)
+            if (file.size > 10 * 1024 * 1024) {
+                showMessage('File too large. Maximum size is 10MB.', 'error');
+                return;
+            }
+            
+            selectedFile = file;
+            showFilePreview(file);
+        }
+
+        function showFilePreview(file) {
+            document.getElementById('filePreview').classList.remove('hidden');
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('submitBtn').disabled = false;
+        }
+
+        function removeFile() {
+            selectedFile = null;
+            document.getElementById('filePreview').classList.add('hidden');
+            document.getElementById('fileInput').value = '';
+            document.getElementById('submitBtn').disabled = true;
+        }
+
+        function cancelUpload() {
+            removeFile();
+            document.getElementById('uploadSection').classList.add('hidden');
+            currentAssignmentId = null;
+        }
+
+        async function handleSubmitAssignment() {
+            if (!selectedFile || !currentAssignmentId) return;
+            
+            try {
+                showLoading(true);
+                
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('assignment_id', currentAssignmentId);
+                
+                const response = await fetch(`${API_BASE}/upload`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Assignment submitted successfully!', 'success');
+                    cancelUpload();
+                    loadSubmissions();
+                } else {
+                    showMessage(data.error || 'Failed to submit assignment', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function loadSubmissions() {
+            try {
+                const response = await fetch(`${API_BASE}/submissions`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (currentUser.role === 'student') {
+                        displayStudentSubmissions(data.submissions);
+                    } else {
+                        displayTeacherSubmissions(data.submissions);
+                    }
+                }
+            } catch (error) {
+                showMessage('Failed to load submissions', 'error');
+            }
+        }
+
+        function displayStudentSubmissions(submissions) {
+            const container = document.getElementById('studentSubmissions');
+            container.innerHTML = '';
+            
+            if (submissions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No submissions yet</p>';
+                return;
+            }
+            
+            submissions.forEach(submission => {
+                const card = document.createElement('div');
+                card.className = 'border border-gray-200 rounded-lg p-4';
+                
+                const statusColor = submission.status === 'graded' ? 'text-green-600' : 'text-yellow-600';
+                const gradeDisplay = submission.grade !== null ? `${submission.grade}/100` : 'Not graded';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${submission.assignment_title}</h4>
+                            <p class="text-sm text-gray-600">Submitted: ${new Date(submission.submitted_at).toLocaleString()}</p>
+                            <p class="text-sm ${statusColor} font-medium mt-1">Status: ${submission.status}</p>
+                            ${submission.grade !== null ? `<p class="text-sm text-gray-600">Grade: <span class="font-semibold">${gradeDisplay}</span></p>` : ''}
+                            ${submission.feedback ? `<p class="text-sm text-gray-600 mt-2"><strong>Feedback:</strong> ${submission.feedback}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <a href="/uploads/${submission.file_path}" target="_blank" 
+                               class="text-blue-600 hover:text-blue-800 text-sm">View File</a>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        // Teacher functions
+        async function loadTeacherData() {
+            await loadAssignments();
+            await loadSubmissions();
+        }
+
+        function switchTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-purple-500', 'text-purple-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Show selected tab
+            if (tab === 'assignments') {
+                document.getElementById('assignmentsTab').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('assignmentsTab').classList.add('border-purple-500', 'text-purple-600');
+                document.getElementById('teacherAssignmentsContent').classList.remove('hidden');
+                loadAssignments();
+            } else if (tab === 'submissions') {
+                document.getElementById('submissionsTab').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('submissionsTab').classList.add('border-purple-500', 'text-purple-600');
+                document.getElementById('teacherSubmissionsContent').classList.remove('hidden');
+                loadSubmissions();
+            } else if (tab === 'createAssignment') {
+                document.getElementById('createAssignmentTab').classList.remove('border-transparent', 'text-gray-500');
+                document.getElementById('createAssignmentTab').classList.add('border-purple-500', 'text-purple-600');
+                document.getElementById('createAssignmentContent').classList.remove('hidden');
+            }
+        }
+
+        function displayTeacherAssignments(assignments) {
+            const container = document.getElementById('teacherAssignments');
+            container.innerHTML = '';
+            
+            if (assignments.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No assignments created yet</p>';
+                return;
+            }
+            
+            assignments.forEach(assignment => {
+                const card = document.createElement('div');
+                card.className = 'border border-gray-200 rounded-lg p-4 card-hover';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${assignment.title}</h4>
+                            <p class="text-sm text-gray-600 mt-1">${assignment.description}</p>
+                            <div class="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                                <span>Subject: ${assignment.subject}</span>
+                                <span>Max Points: ${assignment.max_points}</span>
+                                <span>Due: ${new Date(assignment.due_date).toLocaleDateString()}</span>
+                                <span>Created: ${new Date(assignment.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button class="view-submissions-btn text-blue-600 hover:text-blue-800 text-sm"
+                                    data-assignment-id="${assignment.id}">
+                                View Submissions
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                card.querySelector('.view-submissions-btn').addEventListener('click', () => {
+                    switchTab('submissions');
+                });
+                
+                container.appendChild(card);
+            });
+        }
+
+        function displayTeacherSubmissions(submissions) {
+            const container = document.getElementById('teacherSubmissions');
+            container.innerHTML = '';
+            
+            if (submissions.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No submissions yet</p>';
+                return;
+            }
+            
+            submissions.forEach(submission => {
+                const card = document.createElement('div');
+                card.className = 'border border-gray-200 rounded-lg p-4 card-hover';
+                
+                const statusColor = submission.status === 'graded' ? 'text-green-600' : 'text-yellow-600';
+                const gradeDisplay = submission.grade !== null ? `${submission.grade}/100` : 'Not graded';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">${submission.assignment_title}</h4>
+                            <p class="text-sm text-gray-600">Student: ${submission.student_name}</p>
+                            <p class="text-sm text-gray-600">Submitted: ${new Date(submission.submitted_at).toLocaleString()}</p>
+                            <p class="text-sm ${statusColor} font-medium mt-1">Status: ${submission.status}</p>
+                            ${submission.grade !== null ? `<p class="text-sm text-gray-600">Grade: <span class="font-semibold">${gradeDisplay}</span></p>` : ''}
+                        </div>
+                        <div class="flex flex-col space-y-2">
+                            <a href="/uploads/${submission.file_path}" target="_blank" 
+                               class="text-blue-600 hover:text-blue-800 text-sm">View File</a>
+                            <button class="grade-btn bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700 transition-colors"
+                                    data-submission='${JSON.stringify(submission)}'>
+                                ${submission.grade !== null ? 'Edit Grade' : 'Grade'}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                card.querySelector('.grade-btn').addEventListener('click', (e) => {
+                    const submissionData = JSON.parse(e.target.getAttribute('data-submission'));
+                    showGradingModal(submissionData);
+                });
+                
+                container.appendChild(card);
+            });
+        }
+
+        async function handleCreateAssignment(e) {
+            e.preventDefault();
+            
+            const formData = {
+                title: document.getElementById('assignmentTitle').value,
+                subject: document.getElementById('assignmentSubject').value,
+                description: document.getElementById('assignmentDescription').value,
+                max_points: parseInt(document.getElementById('assignmentMaxPoints').value),
+                due_date: document.getElementById('assignmentDueDate').value
+            };
+            
+            try {
+                showLoading(true);
+                
+                const response = await fetch(`${API_BASE}/assignments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Assignment created successfully!', 'success');
+                    document.getElementById('createAssignmentForm').reset();
+                    switchTab('assignments');
+                } else {
+                    showMessage(data.error || 'Failed to create assignment', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Grading functions
+        function showGradingModal(submission) {
+            document.getElementById('gradingModal').classList.remove('hidden');
+            document.getElementById('gradingSubmissionId').value = submission.id;
+            
+            document.getElementById('submissionDetails').innerHTML = `
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div><strong>Assignment:</strong> ${submission.assignment_title}</div>
+                    <div><strong>Student:</strong> ${submission.student_name}</div>
+                    <div><strong>Submitted:</strong> ${new Date(submission.submitted_at).toLocaleString()}</div>
+                    <div><strong>File:</strong> <a href="/uploads/${submission.file_path}" target="_blank" class="text-blue-600 hover:text-blue-800">View File</a></div>
+                </div>
+            `;
+            
+            // Pre-fill existing grade and feedback
+            if (submission.grade !== null) {
+                document.getElementById('gradeInput').value = submission.grade;
+            }
+            if (submission.feedback) {
+                document.getElementById('feedbackInput').value = submission.feedback;
+            }
+            
+            // Store submission data for AI analysis
+            document.getElementById('analyzeBtn').setAttribute('data-submission', JSON.stringify(submission));
+        }
+
+        function closeGradingModal() {
+            document.getElementById('gradingModal').classList.add('hidden');
+            document.getElementById('gradingForm').reset();
+            document.getElementById('aiAnalysis').classList.add('hidden');
+        }
+
+        async function handleAIAnalysis() {
+            const submissionData = JSON.parse(document.getElementById('analyzeBtn').getAttribute('data-submission'));
+            
+            try {
+                showLoading(true);
+                
+                const response = await fetch(`${API_BASE}/submissions/${submissionData.id}/analyze`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayAIAnalysis(data);
+                    // Pre-fill grade from AI recommendation
+                    document.getElementById('gradeInput').value = data.recommendedGrade;
+                } else {
+                    showMessage(data.error || 'AI analysis failed', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error during AI analysis', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayAIAnalysis(analysis) {
+            const container = document.getElementById('aiAnalysis');
+            container.classList.remove('hidden');
+            
+            container.innerHTML = `
+                <h4 class="font-semibold text-blue-800 mb-3">🤖 AI Analysis Results</h4>
+                
+                <div class="mb-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <span class="text-sm font-medium text-gray-700">Recommended Grade:</span>
+                        <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm font-semibold">
+                            ${analysis.recommendedGrade}/100
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h5 class="font-semibold text-green-700 mb-2">✅ Positive Points:</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${analysis.positivePoints.map(point => `<li>• ${point}</li>`).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold text-orange-700 mb-2">📈 Areas for Improvement:</h5>
+                        <ul class="text-sm text-gray-600 space-y-1">
+                            ${analysis.areasForImprovement.map(point => `<li>• ${point}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function handleGradeSubmission(e) {
+            e.preventDefault();
+            
+            const submissionId = document.getElementById('gradingSubmissionId').value;
+            const grade = parseInt(document.getElementById('gradeInput').value);
+            const feedback = document.getElementById('feedbackInput').value;
+            
+            try {
+                showLoading(true);
+                
+                const response = await fetch(`${API_BASE}/submissions/${submissionId}/grade`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ grade, feedback })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showMessage('Grade saved successfully!', 'success');
+                    closeGradingModal();
+                    loadSubmissions();
+                } else {
+                    showMessage(data.error || 'Failed to save grade', 'error');
+                }
+            } catch (error) {
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Utility functions
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Set default due date to tomorrow
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(23, 59);
+        document.getElementById('assignmentDueDate').value = tomorrow.toISOString().slice(0, 16);
+    </script>
+</body>
+</html>

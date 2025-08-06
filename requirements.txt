@@ -1,0 +1,7 @@
+Flask
+Flask-CORS
+Flask-Limiter
+PyJWT
+Werkzeug
+requests
+python-dotenv
